@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AiOutlineEdit } from 'react-icons/ai';
 import { TiUserAdd } from 'react-icons/ti';
 import { MdContacts } from 'react-icons/md';
@@ -6,6 +6,8 @@ import { FcViewDetails } from 'react-icons/fc';
 
 import Modal from '../Modal/Modal';
 import InputField from '../InputField/InputField';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 
@@ -13,8 +15,12 @@ import InputField from '../InputField/InputField';
 const Table = () => {
     const [isOpen, setIsopen] = useState(false);
     const [confirmDlt, setConfirmDlt] = useState(false);
-    const [detailindex, setDetailindex] = useState(null);
+    const [detail, setDetail] = useState([]);
+    console.log(detail, "detail");
+    console.log(detail, "detail")
     const [editindex, setEditindex] = useState(null);
+    const [toedit, setToedit] = useState([]);
+    console.log(toedit, 1111111111);
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setsSearchQuery] = useState(false);
     const [currentContact, setCurrentContact] = useState({
@@ -22,7 +28,6 @@ const Table = () => {
         phone: '',
         company: '',
         address: '',
-
         updatedon: '',
     });
 
@@ -32,8 +37,10 @@ const Table = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
-
+        let uniqueid = Date.now() + Math.floor(Math.random() * 1000000)
+        console.log(uniqueid, "uniqueid");
         const newContacts = {
+            id: uniqueid,
             name: formData.get('name'),
             phone: formData.get('phone'),
             company: formData.get('company'),
@@ -41,53 +48,75 @@ const Table = () => {
             createdon: formData.get('createdon'),
             updatedon: formData.get('updatedon'),
         };
-
+        console.log(newContacts, "newContacts");
         setContacts([...contacts, newContacts])
         localStorage.setItem('contacts', JSON.stringify([...contacts, newContacts]));
         setIsopen(false)
-
+        toast("Contact Added")
 
 
     };
 
-    const showDetails = (setIsopen, contacts, index) => {
+    const showDetails = (setIsopen, contacts, id) => {
+
+        const contactID = id
         setIsopen(true)
-        console.log(index, "index details");
-        setDetailindex(index)
+        console.log(contacts, "index details");
+        console.log(contactID, "id");
+        const selectedContact = contacts.filter((contact) => contact?.id == contactID)
+        console.log(selectedContact);
+        setDetail(selectedContact)
+
+
     }
 
-    const confirmDelete = (index, confirmDlt) => {
-        console.log("confirmDlt", confirmDlt);
-        console.log("index", index);
-        setIsopen(true)
+    const confirmDelete = (setIsopen, id) => {
+        const contactID = id
+        console.log(contactID, "contactID dlt");
+        console.log(contacts, "contacts dlt");
+        const newContacts = [...contacts];
+        let filteredContact = newContacts.filter((contact) => contact?.id !== contactID)
+        console.log(filteredContact, "filteredContact");
+        setContacts(filteredContact);
+        setSearchResults(filteredContact)
+        localStorage.setItem('contacts', JSON.stringify(newContacts))
+        toast("Contact Deleted")
 
-        if (confirmDlt) {
-            const newContacts = [...contacts];
-            newContacts.splice(index, 1);
-            setContacts(newContacts);
-            localStorage.setItem('contacts', JSON.stringify(newContacts))
+
+    }
+
+    useEffect(() => {
+        if (editindex) {
+            const selectedContact = contacts.filter((contact) => contact?.id == editindex)
+            setToedit(selectedContact)
+
         }
+    }, [editindex]);
 
 
-        confirmDlt && setIsopen(false)
 
-    }
+
 
     const handleEdit = (event) => {
-        console.log(event, event, event);
-        console.log(editindex,);
         event.preventDefault();
+        console.log(contacts);
+        console.log(editindex,);
+        const selectedContact = contacts.filter((contact) => contact?.id == editindex)
 
-
-
+        console.log(selectedContact);
         let date = new Date()
+        const selectedContactIndex = contacts.findIndex(c => c.id === editindex);
 
         const newContacts = [...contacts];
+        console.log(newContacts, newContacts, newContacts);
+        newContacts[selectedContactIndex] = { ...currentContact, updatedon: date.toString(), createdon: selectedContact?.id?.createdon };
+        //selectedContact[0] = { ...currentContact, updatedon: date.toString(), createdon: toedit[0]?.createdon };
 
-        newContacts[editindex] = { ...currentContact, updatedon: date.toString(), createdon: contacts[editindex]?.createdon };
-
+        console.log(selectedContact);
         setContacts(newContacts);
+        setSearchResults(newContacts)
         localStorage.setItem('contacts', JSON.stringify(newContacts));
+        toast("Contact Updated")
 
     }
 
@@ -140,7 +169,7 @@ const Table = () => {
             </div>
             <div className="overflow-x-auto">
                 <table className="table w-full">
-
+                    <ToastContainer />
                     <thead>
                         <tr>
                             <th></th>
@@ -178,9 +207,9 @@ const Table = () => {
                                 <td>{item?.createdon?.slice(0, 15)}</td>
                                 <td>{item?.updatedon?.slice(0, 15)}</td>
                                 <td>
-                                    <label onClick={() => showDetails(setIsopen, contacts, index)} htmlFor="modalDetails" className="btn btn-success btn-xs">Details</label>
-                                    <label onClick={() => confirmDelete(index)} htmlFor="modalDelete" className="btn btn-error btn-xs mx-2">Delete</label>
-                                    <label onClick={() => handleEdit(setEditindex(index), setIsopen(true))} htmlFor="modalEdit" className="btn btn-outline btn-primary btn-xs "><AiOutlineEdit /></label>
+                                    <label onClick={() => showDetails(setIsopen, contacts, item?.id)} htmlFor="modalDetails" className="btn btn-success btn-xs">Details</label>
+                                    <label onClick={() => confirmDelete(setIsopen, item?.id)} htmlFor="modalDelete" className="btn btn-error btn-xs mx-2">Delete</label>
+                                    <label onClick={() => handleEdit(setEditindex(item?.id), setIsopen(true))} htmlFor="modalEdit" className="btn btn-outline btn-primary btn-xs "><AiOutlineEdit /></label>
                                 </td>
                             </tr>
 
@@ -197,6 +226,7 @@ const Table = () => {
             {isOpen &&
 
                 <Modal modalAdd="modalAdd" >
+
                     <h3 className="font-bold text-lg">Add New Contact</h3>
                     <form onSubmit={handleSubmit}>
                         <InputField
@@ -240,6 +270,7 @@ const Table = () => {
                         <label htmlFor="modalAdd" className="btn">Close</label>
                     </div>
                 </Modal>
+
             }
 
             {isOpen &&
@@ -249,12 +280,12 @@ const Table = () => {
                     <div className="card card-side bg-base-100 ">
                         <figure><FcViewDetails size={100} /></figure>
                         <div className="card-body">
-                            <h2 className="card-title text-sm text-blue-800">Name: <span className='text-black text-xs'> {contacts[detailindex]?.name}</span> </h2>
-                            <h2 className="card-title text-sm text-blue-800">Phone: <span className='text-black text-xs'>{contacts[detailindex]?.phone} </span></h2>
-                            <h2 className="card-title text-sm text-blue-800">Company: <span className='text-black text-xs'>{contacts[detailindex]?.company}</span> </h2>
-                            <h2 className="card-title text-sm text-blue-800">Address:<span className='text-black text-xs'>{contacts[detailindex]?.address}</span>  </h2>
-                            <h2 className="card-title text-sm text-blue-800">Created on:<span className='text-black text-xs'>{contacts[detailindex]?.createdon?.slice(0, 15)}</span>  </h2>
-                            <h2 className="card-title text-sm text-blue-800">Updated On: <span className='text-black text-xs'>{contacts[detailindex]?.updatedon?.slice(0, 15)} </span></h2>
+                            <h2 className="card-title text-sm text-blue-800">Name: <span className='text-black text-xs'> {detail[0]?.name}</span> </h2>
+                            <h2 className="card-title text-sm text-blue-800">Phone: <span className='text-black text-xs'>{detail[0]?.phone} </span></h2>
+                            <h2 className="card-title text-sm text-blue-800">Company: <span className='text-black text-xs'>{detail[0]?.company}</span> </h2>
+                            <h2 className="card-title text-sm text-blue-800">Address:<span className='text-black text-xs'>{detail[0]?.address}</span>  </h2>
+                            <h2 className="card-title text-sm text-blue-800">Created on:<span className='text-black text-xs'>{detail[0]?.createdon?.slice(0, 15)}</span>  </h2>
+                            <h2 className="card-title text-sm text-blue-800">Updated On: <span className='text-black text-xs'>{detail[0]?.updatedon?.slice(0, 15)} </span></h2>
                         </div>
                     </div>
                     <div className="modal-action">
@@ -264,7 +295,7 @@ const Table = () => {
                 </Modal>
             }
 
-            {isOpen &&
+            {/* {isOpen &&
 
                 <Modal modalDelete="modalDelete" >
 
@@ -276,13 +307,13 @@ const Table = () => {
                         <div className="flex-none">
                             <label htmlFor="modalDelete" className="btn btn-sm btn-ghost">Deny</label>
 
-                            <button onClick={() => confirmDelete(setConfirmDlt(true), confirmDlt)} className="btn btn-sm btn-primary">Accept</button>
+                            <button onClick={() => confirmDelete(setConfirmDlt(true))} className="btn btn-sm btn-primary">Accept</button>
                         </div>
                     </div>
 
 
                 </Modal>
-            }
+            } */}
 
             {
                 isOpen &&
@@ -333,7 +364,7 @@ const Table = () => {
                             type="text"
                             placeholder="createdon"
                             name='createdon'
-                            value={contacts[editindex]?.createdon}
+                            value={toedit[0]?.createdon}
                             disabled
                             onChange={event =>
                                 setCurrentContact({ ...currentContact, createdon: event.target.value })
