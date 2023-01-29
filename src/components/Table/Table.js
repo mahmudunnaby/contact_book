@@ -136,14 +136,14 @@ const Table = () => {
 
     return (
         <div className='w-[90%] mx-auto '>
-            <div className=' flex justify-evenly items-center  '>
+            <div className=' flex flex-col md:flex-row justify-evenly items-center p-5  '>
 
-                <div className='flex flex-col justify-center my-2 '>
+                <div className='flex flex-col justify-center my-2 p-5 '>
 
-                    <input onChange={searchNow} type="text" placeholder="Searc by Name or Number" className="input input-bordered input-accent w-full max-w-xs " />
+                    <input onChange={searchNow} type="text" placeholder="Search by Name, Number" className="input input-bordered input-accent w-full max-w-xs " />
                 </div>
 
-                <div className="stats shadow m-2 py-4 flex justify-center items-center bg-yellow-200">
+                <div className="stats shadow lg:m-2 lg:py-4 flex justify-center items-center bg-yellow-200">
                     <MdContacts size={50} className="text-white m-5" />
                     <div className="stat">
                         <div className="stat-title">Total Contacts</div>
@@ -152,7 +152,7 @@ const Table = () => {
 
                 </div>
                 {
-                    searchQuery && <div className="stats shadow m-2 py-4 flex justify-center items-center bg-yellow-400">
+                    searchQuery && <div className="stats shadow lg:m-2 lg:py-4 my-5 flex justify-center items-center bg-yellow-400">
                         <MdContacts size={50} className="text-white m-5" />
                         <div className="stat">
                             <div className="stat-title"> {contacts?.length == searchResults?.length ? <span>All Entries</span> : <span>Matched Results</span>}  </div>
@@ -320,7 +320,7 @@ const Table = () => {
 
                 <Modal modalEdit="modalEdit" >
 
-                    <h1>Editing Contact Of <span className='text-blue-800'>{contacts[editindex]?.name}</span> </h1>
+                    <h1>Editing Contact Of <span className='text-blue-800'>{toedit[0]?.name}</span> </h1>
                     <form onSubmit={(event) => handleEdit(event)}>
 
                         <input
